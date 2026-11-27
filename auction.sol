@@ -6,9 +6,9 @@ contract auctionContract {
 
     uint public item_ID;
 
-    address public Owener;
+    address public Owner;
     
-    constructor() {Owener = msg.sender;}
+    constructor() {Owner = msg.sender;}
 
     // Open Account Both Aucton Holder and Buyer
 
@@ -71,7 +71,7 @@ contract auctionContract {
         auction[item_ID].auctionItem = _itemName;
         auction[item_ID].auctionHolder = msg.sender;
         auction[item_ID].auctionMinimumBid = _minimumPriceBid;
-        auction[item_ID].auctionEnd = _auctionEnd * block.timestamp;
+        auction[item_ID].auctionEnd = _auctionEnd + block.timestamp;
 
         // increase the Action id for unique numbering
         item_ID++;
@@ -109,12 +109,13 @@ contract auctionContract {
         // whos can call this fucntion under what condition 
         require(msg.sender == Owner, "You areno the owner");
         require(_auction_ID < item_ID, "This auction does not exist");
-        require(auction[_auction_ID].auctionEnd > block.timestamp, "Auction has Ended");
+        // Here Cheacking the Auction is ended or not
+        require(block.timestamp >= auction[_auction_ID].auctionEnd,"Auction is still running");
         // get money from buyer and give to the seller
         address buyer = highestBidder[_auction_ID]._bidderAddress;
         uint price = highestBidder[_auction_ID]._bidderAmount;
         address seller = auction[_auction_ID].auctionHolder;
-        string memory item = highestBidder[_auction_ID].
+        // string memory item = highestBidder[_auction_ID].
         
         // Trade
         biders[buyer].biderBalance -= price;
@@ -137,13 +138,14 @@ contract auctionContract {
     function withdrawl(uint _amount) public {
         // Check
         require(isBider[msg.sender], "You dont have account here, Please first open the account");
-        require(_amount >= biders[msg.sender].biderBalance, "Insufficinet Balance");
+        require(_amount <= biders[msg.sender].biderBalance, "Insufficinet Balance");
         // Effect
         biders[msg.sender].biderBalance -= _amount;
         // Interaction 
         (bool success,) = payable(msg.sender).call{value: _amount}("");
         require(success, "Transfer Failed");
     }
+
 
     // Withdrawal Money after the Aution --- 
 
